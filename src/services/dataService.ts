@@ -112,11 +112,15 @@ export async function login(username: string, password: string): Promise<User> {
       .eq('username', cleanUsername)
       .single();
 
-    if (error || !user) {
-      throw new Error('Usuario o contraseña incorrectos.');
+    if (error) {
+      if (error.code === 'PGRST116') {
+        throw new Error('Usuario o contraseña incorrectos.');
+      }
+      console.error('Supabase query error:', error);
+      throw new Error(`Error de conexión con Supabase: ${error.message}`);
     }
 
-    if (user.password !== password) {
+    if (!user || user.password !== password) {
       throw new Error('Usuario o contraseña incorrectos.');
     }
 
@@ -236,7 +240,11 @@ export async function fetchState(): Promise<AppState> {
       // Fetch schedule
       let scheduleQuery = supabase.from('schedule').select('*').order('day').order('start');
       if (!isAdmin) {
-        scheduleQuery = scheduleQuery.in('course', courseIds);
+        if (courseIds.length > 0) {
+          scheduleQuery = scheduleQuery.in('course', courseIds);
+        } else {
+          scheduleQuery = scheduleQuery.eq('course', '__NONE__');
+        }
       }
       const { data: schedule = [] } = await scheduleQuery;
 
@@ -250,7 +258,11 @@ export async function fetchState(): Promise<AppState> {
       // Fetch tasks
       let tasksQuery = supabase.from('tasks').select('*').order('due');
       if (!isAdmin) {
-        tasksQuery = tasksQuery.in('course', courseIds);
+        if (courseIds.length > 0) {
+          tasksQuery = tasksQuery.in('course', courseIds);
+        } else {
+          tasksQuery = tasksQuery.eq('course', '__NONE__');
+        }
       }
       const { data: tasks = [] } = await tasksQuery;
 
