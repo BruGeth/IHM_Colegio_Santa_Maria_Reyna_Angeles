@@ -90,30 +90,36 @@ CREATE TABLE IF NOT EXISTS audit (
   created TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 2. HABILITAR ROW LEVEL SECURITY (RLS) CON PERMISOS ANONIMOS PARA LA DEMO
+-- 2. PERMISOS Y PRIVILEGIOS PARA CLIENTE WEB (ANON Y AUTHENTICATED)
 
-ALTER TABLE students ENABLE ROW LEVEL SECURITY;
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
-ALTER TABLE schedule ENABLE ROW LEVEL SECURITY;
-ALTER TABLE grades ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE submissions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
-ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE audit ENABLE ROW LEVEL SECURITY;
+-- Otorgar acceso al esquema public
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
 
--- Políticas permisivas para cliente web anónimo
-CREATE POLICY "Public full access students" ON students FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access users" ON users FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access courses" ON courses FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access schedule" ON schedule FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access grades" ON grades FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access tasks" ON tasks FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access submissions" ON submissions FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access announcements" ON announcements FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access contacts" ON contacts FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Public full access audit" ON audit FOR ALL USING (true) WITH CHECK (true);
+-- Otorgar permisos sobre todas las tablas actuales
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
+
+-- Otorgar permisos sobre secuencias (para generación de IDs)
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+
+-- Otorgar permisos sobre rutinas y funciones
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated;
+
+-- Asegurar que tablas y secuencias futuras también tengan estos permisos
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO anon, authenticated;
+
+-- Desactivar RLS para evitar errores 42501 (permission denied) en cliente directo
+ALTER TABLE students DISABLE ROW LEVEL SECURITY;
+ALTER TABLE users DISABLE ROW LEVEL SECURITY;
+ALTER TABLE courses DISABLE ROW LEVEL SECURITY;
+ALTER TABLE schedule DISABLE ROW LEVEL SECURITY;
+ALTER TABLE grades DISABLE ROW LEVEL SECURITY;
+ALTER TABLE tasks DISABLE ROW LEVEL SECURITY;
+ALTER TABLE submissions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE announcements DISABLE ROW LEVEL SECURITY;
+ALTER TABLE contacts DISABLE ROW LEVEL SECURITY;
+ALTER TABLE audit DISABLE ROW LEVEL SECURITY;
 
 -- 3. DATOS DE DEMOSTRACIÓN (SEEDS)
 

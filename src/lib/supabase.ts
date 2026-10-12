@@ -7,8 +7,11 @@ const rawKey =
   import.meta.env.SUPABASE_ANON_KEY ||
   '';
 
-const supabaseUrl = rawUrl.trim();
-const supabaseAnonKey = rawKey.trim();
+const supabaseUrl = rawUrl
+  .trim()
+  .replace(/^["']|["']$/g, '')
+  .replace(/\/+$/, '');
+const supabaseAnonKey = rawKey.trim().replace(/^["']|["']$/g, '');
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl &&
