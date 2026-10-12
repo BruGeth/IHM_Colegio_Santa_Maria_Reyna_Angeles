@@ -98,3 +98,4 @@ export interface GalleryItem {
   title: string;
   desc: string;
 }
+

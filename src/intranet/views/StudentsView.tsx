@@ -266,3 +266,4 @@ export const StudentsView: React.FC<StudentsViewProps> = ({
     </>
   );
 };
+

@@ -179,3 +179,4 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
     </>
   );
 };
+

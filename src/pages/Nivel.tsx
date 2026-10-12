@@ -130,3 +130,4 @@ export const Nivel: React.FC<NivelProps> = ({ levelKey }) => {
     </>
   );
 };
+

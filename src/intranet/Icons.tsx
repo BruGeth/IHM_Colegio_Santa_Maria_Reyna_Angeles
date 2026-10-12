@@ -29,3 +29,4 @@ export const Icon: React.FC<{ name: string }> = ({ name }) => {
     </svg>
   );
 };
+

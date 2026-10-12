@@ -16,3 +16,4 @@ export const PortalLayout: React.FC = () => {
     </div>
   );
 };
+

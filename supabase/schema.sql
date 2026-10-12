@@ -203,3 +203,4 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO audit (id, actor, action, detail, created) VALUES
   (1, 'admin', 'Inicio del sistema', 'Configuración inicial del año académico 2026', now())
 ON CONFLICT (id) DO NOTHING;
+

@@ -301,3 +301,4 @@ export const IntranetLayout: React.FC = () => {
     </div>
   );
 };
+

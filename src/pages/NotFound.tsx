@@ -12,3 +12,4 @@ export const NotFound: React.FC = () => {
     </section>
   );
 };
+

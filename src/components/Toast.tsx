@@ -18,3 +18,4 @@ export const Toast: React.FC<ToastProps> = ({ message, isError = false }) => {
     </div>
   );
 };
+

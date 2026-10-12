@@ -227,3 +227,4 @@ export const Inicio: React.FC = () => {
     </>
   );
 };
+
