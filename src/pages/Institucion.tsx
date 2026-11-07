@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 export const Institucion: React.FC = () => {
+  useEffect(() => {
+    document.title = 'Nosotros | Santa María';
+  }, []);
   return (
     <>
       <section className="pageHero">

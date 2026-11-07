@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { levels } from '../services/mockData';
 
@@ -8,6 +8,12 @@ interface NivelProps {
 
 export const Nivel: React.FC<NivelProps> = ({ levelKey }) => {
   const level = levels[levelKey];
+
+  useEffect(() => {
+    if (level) {
+      document.title = `${level.name} | Santa María`;
+    }
+  }, [level]);
 
   if (!level) {
     return <Navigate to="/" replace />;

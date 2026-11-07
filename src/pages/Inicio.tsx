@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { levels, galleryData } from '../services/mockData';
 
 export const Inicio: React.FC = () => {
+  useEffect(() => {
+    document.title = 'Inicio | Santa María';
+  }, []);
+
   const previewPhotos = galleryData.slice(0, 3);
 
   return (

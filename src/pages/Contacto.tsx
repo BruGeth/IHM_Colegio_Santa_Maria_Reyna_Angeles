@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { createContact } from '../services/dataService';
 
@@ -15,10 +15,23 @@ export const Contacto: React.FC = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successResult, setSuccessResult] = useState<{ id: string } | null>(
-    null
-  );
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [successResult, setSuccessResult] = useState<{ id: string } | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  const reviewBtnRef = useRef<HTMLButtonElement>(null);
+  const editBtnRef = useRef<HTMLButtonElement>(null);
+  const submitBtnRef = useRef<HTMLButtonElement>(null);
+  const summaryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    document.title = 'Contacto | Santa María';
+    const h1 = document.querySelector('h1');
+    if (h1) {
+      h1.tabIndex = -1;
+      h1.focus();
+    }
+  }, []);
 
   useEffect(() => {
     if (
@@ -39,35 +52,49 @@ export const Contacto: React.FC = () => {
     const errs: Record<string, string> = {};
 
     if (name.trim().length < 3) {
-      errs.name = 'Escribe un nombre de al menos 3 caracteres.';
+      errs.name = 'Nombre: escribe al menos 3 caracteres.';
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      errs.email = 'Escribe un correo válido.';
+      errs.email = 'Correo: usa un formato como familia@example.com.';
     }
     if (phone.trim() && !/^[0-9 +()\-]{6,14}$/.test(phone.trim())) {
-      errs.phone = 'Revisa el formato del teléfono.';
+      errs.phone = 'Teléfono: usa entre 6 y 14 caracteres, solo números y signos de teléfono.';
     }
     if (!topic) {
-      errs.topic = 'Selecciona un motivo.';
+      errs.topic = 'Motivo: selecciona una opción de la lista.';
     }
     if (message.trim().length < 12 || message.trim().length > 1000) {
-      errs.message = 'Escribe entre 12 y 1000 caracteres.';
+      errs.message = 'Consulta: escribe entre 12 y 1000 caracteres.';
     }
     if (!consent) {
-      errs.consent = 'Confirma el uso de datos de prueba.';
+      errs.consent = 'Confirmación: marca la casilla para indicar que son datos de prueba.';
     }
 
     setErrors(errs);
-    return Object.keys(errs).length === 0;
+    if (Object.keys(errs).length > 0) {
+      setTimeout(() => {
+        summaryRef.current?.focus();
+      }, 50);
+      return false;
+    }
+    return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleStartReview = (e: React.FormEvent) => {
     e.preventDefault();
     setServerError(null);
 
     if (!validate()) return;
+    setShowReviewDialog(true);
+    setTimeout(() => {
+      editBtnRef.current?.focus();
+    }, 50);
+  };
 
+  const handleConfirmSubmit = async () => {
     setIsSubmitting(true);
+    setServerError(null);
+
     try {
       const res = await createContact({
         name,
@@ -77,6 +104,7 @@ export const Contacto: React.FC = () => {
         message,
         consent,
       });
+      setShowReviewDialog(false);
       setSuccessResult(res);
       // Reset form
       setName('');
@@ -98,7 +126,10 @@ export const Contacto: React.FC = () => {
     setSuccessResult(null);
     setServerError(null);
     setErrors({});
+    setShowReviewDialog(false);
   };
+
+  const errorEntries = Object.entries(errors);
 
   return (
     <>
@@ -119,7 +150,7 @@ export const Contacto: React.FC = () => {
         <div className="container formWrap">
           <article className="panel">
             <div className="eyebrow">Información para familias</div>
-            <h3>¿Cómo podemos orientarte?</h3>
+            <h2>¿Cómo podemos orientarte?</h2>
             <p>
               Completa tu consulta con datos de prueba. Recibirás un código de
               seguimiento y podrás verla en la intranet de administración.
@@ -127,7 +158,7 @@ export const Contacto: React.FC = () => {
 
             {successResult ? (
               <div
-                className="success"
+                className="a11y-status"
                 role="status"
                 aria-live="polite"
                 style={{ marginTop: '24px' }}
@@ -148,7 +179,50 @@ export const Contacto: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} noValidate>
+              <form
+                onSubmit={handleStartReview}
+                noValidate
+                aria-describedby="contactSteps"
+              >
+                <p className="a11y-help" id="contactSteps">
+                  Paso 1 de 2. Completa los campos marcados con asterisco (*).
+                  Después podrás revisar y confirmar tu consulta. Usa datos
+                  ficticios.
+                </p>
+
+                {errorEntries.length > 0 && (
+                  <div
+                    className="a11y-summary"
+                    tabIndex={-1}
+                    ref={summaryRef}
+                    role="alert"
+                    aria-labelledby="summaryTitle"
+                  >
+                    <h3 id="summaryTitle" style={{ margin: '0 0 8px 0' }}>
+                      Revisa {errorEntries.length}{' '}
+                      {errorEntries.length === 1 ? 'campo' : 'campos'} antes de
+                      continuar
+                    </h3>
+                    <p>Corrige los datos indicados y vuelve a registrar la consulta.</p>
+                    <ul>
+                      {errorEntries.map(([fieldId, errMsg]) => (
+                        <li key={fieldId}>
+                          <a
+                            href={`#${fieldId}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const el = document.getElementById(fieldId);
+                              el?.focus();
+                            }}
+                          >
+                            {errMsg}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 <div className="formGrid">
                   {/* NOMBRE */}
                   <div className="field">
@@ -158,12 +232,18 @@ export const Contacto: React.FC = () => {
                       type="text"
                       autoComplete="name"
                       maxLength={80}
+                      required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className={errors.name ? 'invalid' : ''}
                       aria-invalid={Boolean(errors.name)}
+                      aria-describedby={errors.name ? 'nameErr' : undefined}
                     />
-                    {errors.name && <span className="error">{errors.name}</span>}
+                    {errors.name && (
+                      <span className="a11y-error" id="nameErr">
+                        {errors.name}
+                      </span>
+                    )}
                   </div>
 
                   {/* EMAIL */}
@@ -174,13 +254,17 @@ export const Contacto: React.FC = () => {
                       type="email"
                       autoComplete="email"
                       maxLength={120}
+                      required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className={errors.email ? 'invalid' : ''}
                       aria-invalid={Boolean(errors.email)}
+                      aria-describedby={errors.email ? 'emailErr' : undefined}
                     />
                     {errors.email && (
-                      <span className="error">{errors.email}</span>
+                      <span className="a11y-error" id="emailErr">
+                        {errors.email}
+                      </span>
                     )}
                   </div>
 
@@ -196,9 +280,12 @@ export const Contacto: React.FC = () => {
                       onChange={(e) => setPhone(e.target.value)}
                       className={errors.phone ? 'invalid' : ''}
                       aria-invalid={Boolean(errors.phone)}
+                      aria-describedby={errors.phone ? 'phoneErr' : undefined}
                     />
                     {errors.phone && (
-                      <span className="error">{errors.phone}</span>
+                      <span className="a11y-error" id="phoneErr">
+                        {errors.phone}
+                      </span>
                     )}
                   </div>
 
@@ -207,10 +294,12 @@ export const Contacto: React.FC = () => {
                     <label htmlFor="topic">Motivo de consulta *</label>
                     <select
                       id="topic"
+                      required
                       value={topic}
                       onChange={(e) => setTopic(e.target.value)}
                       className={errors.topic ? 'invalid' : ''}
                       aria-invalid={Boolean(errors.topic)}
+                      aria-describedby={errors.topic ? 'topicErr' : undefined}
                     >
                       <option value="">Selecciona un motivo</option>
                       {[
@@ -226,7 +315,9 @@ export const Contacto: React.FC = () => {
                       ))}
                     </select>
                     {errors.topic && (
-                      <span className="error">{errors.topic}</span>
+                      <span className="a11y-error" id="topicErr">
+                        {errors.topic}
+                      </span>
                     )}
                   </div>
 
@@ -235,18 +326,23 @@ export const Contacto: React.FC = () => {
                     <label htmlFor="message">Tu consulta *</label>
                     <textarea
                       id="message"
+                      required
+                      minLength={12}
                       maxLength={1000}
                       placeholder="Cuéntanos qué información necesitas"
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       className={errors.message ? 'invalid' : ''}
                       aria-invalid={Boolean(errors.message)}
+                      aria-describedby={`messageHelp ${errors.message ? 'messageErr' : ''}`.trim()}
                     ></textarea>
-                    <span className="help">
+                    <span className="help" id="messageHelp">
                       Entre 12 y 1000 caracteres. Usa información ficticia.
                     </span>
                     {errors.message && (
-                      <span className="error">{errors.message}</span>
+                      <span className="a11y-error" id="messageErr">
+                        {errors.message}
+                      </span>
                     )}
                   </div>
 
@@ -255,32 +351,36 @@ export const Contacto: React.FC = () => {
                     <input
                       id="terms"
                       type="checkbox"
+                      required
                       checked={consent}
                       onChange={(e) => setConsent(e.target.checked)}
                       aria-invalid={Boolean(errors.consent)}
+                      aria-describedby={errors.consent ? 'termsErr' : undefined}
                     />
                     <label htmlFor="terms">
                       Entiendo que mis datos de prueba se guardarán en este
-                      entorno académico. Esta consulta no se envía al colegio.
+                      entorno académico. Esta consulta no se envía al colegio. *
                     </label>
                   </div>
                   {errors.consent && (
-                    <span className="error full">{errors.consent}</span>
+                    <span className="a11y-error full" id="termsErr">
+                      {errors.consent}
+                    </span>
                   )}
 
                   {serverError && (
-                    <div className="notice full">{serverError}</div>
+                    <div className="a11y-summary full" role="alert">
+                      {serverError}
+                    </div>
                   )}
 
                   <div className="full">
                     <button
+                      ref={submitBtnRef}
                       className="btn"
                       type="submit"
-                      disabled={isSubmitting}
                     >
-                      {isSubmitting
-                        ? 'Registrando…'
-                        : 'Registrar consulta →'}
+                      Revisar consulta (Paso 1 de 2) →
                     </button>
                   </div>
                 </div>
@@ -336,7 +436,72 @@ export const Contacto: React.FC = () => {
           </aside>
         </div>
       </section>
+
+      {/* DIÁLOGO ACCESIBLE DE REVISIÓN Y CONFIRMACIÓN (PASO 2 DE 2) */}
+      {showReviewDialog && (
+        <dialog
+          className="a11y-review"
+          open
+          aria-labelledby="reviewTitle"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              setShowReviewDialog(false);
+              submitBtnRef.current?.focus();
+            }
+          }}
+        >
+          <h2 id="reviewTitle">Revisa tu consulta</h2>
+          <p>
+            Paso 2 de 2. Confirma los datos ficticios antes de registrarlos. La
+            consulta se guarda en el entorno de demostración.
+          </p>
+          <dl>
+            <dt>Nombre:</dt>
+            <dd>{name}</dd>
+            <dt>Correo:</dt>
+            <dd>{email}</dd>
+            {phone && (
+              <>
+                <dt>Teléfono:</dt>
+                <dd>{phone}</dd>
+              </>
+            )}
+            <dt>Motivo:</dt>
+            <dd>{topic}</dd>
+            <dt>Consulta:</dt>
+            <dd>{message}</dd>
+          </dl>
+
+          {serverError && (
+            <div className="a11y-error" role="alert" style={{ marginBottom: '14px' }}>
+              {serverError}
+            </div>
+          )}
+
+          <div className="actions">
+            <button
+              ref={reviewBtnRef}
+              type="button"
+              className="primary"
+              disabled={isSubmitting}
+              onClick={handleConfirmSubmit}
+            >
+              {isSubmitting ? 'Registrando…' : 'Confirmar registro'}
+            </button>
+            <button
+              ref={editBtnRef}
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => {
+                setShowReviewDialog(false);
+                submitBtnRef.current?.focus();
+              }}
+            >
+              Volver a editar
+            </button>
+          </div>
+        </dialog>
+      )}
     </>
   );
 };
-

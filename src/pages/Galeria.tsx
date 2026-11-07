@@ -15,6 +15,15 @@ export const Galeria: React.FC = () => {
   const [selectedPhoto, setSelectedPhoto] = useState<GalleryItem | null>(null);
 
   useEffect(() => {
+    document.title = 'Galería | Santa María';
+    const h1 = document.querySelector('h1');
+    if (h1) {
+      h1.tabIndex = -1;
+      h1.focus();
+    }
+  }, []);
+
+  useEffect(() => {
     const qNivel = searchParams.get('nivel');
     if (qNivel && ['inicial', 'primaria', 'secundaria'].includes(qNivel)) {
       setFilter(qNivel);
@@ -81,7 +90,6 @@ export const Galeria: React.FC = () => {
                 type="button"
                 className="photo"
                 onClick={() => setSelectedPhoto(photo)}
-                aria-label={`Ampliar: ${photo.title}`}
               >
                 <img
                   src={`/assets/${photo.image}`}

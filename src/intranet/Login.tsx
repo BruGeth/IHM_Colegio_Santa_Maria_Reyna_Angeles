@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { login } from '../services/dataService';
 import { User } from '../types';
@@ -13,6 +13,10 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = 'Acceso a la intranet | Santa María';
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,6 +96,8 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
                 placeholder="Escribe tu usuario"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? 'loginError' : undefined}
               />
             </div>
 
@@ -108,6 +114,8 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
                   placeholder="Escribe tu contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={error ? 'loginError' : undefined}
                 />
                 <button
                   type="button"

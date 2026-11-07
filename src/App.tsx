@@ -7,6 +7,7 @@ import { Institucion } from './pages/Institucion';
 import { Nivel } from './pages/Nivel';
 import { Galeria } from './pages/Galeria';
 import { Contacto } from './pages/Contacto';
+import { DeclaracionAccesibilidad } from './pages/DeclaracionAccesibilidad';
 import { NotFound } from './pages/NotFound';
 import { IntranetLayout } from './intranet/IntranetLayout';
 
@@ -25,6 +26,7 @@ export const App: React.FC = () => {
           <Route path="secundaria" element={<Nivel levelKey="secundaria" />} />
           <Route path="galeria" element={<Galeria />} />
           <Route path="contacto" element={<Contacto />} />
+          <Route path="accesibilidad" element={<DeclaracionAccesibilidad />} />
           <Route path="*" element={<NotFound />} />
         </Route>
 

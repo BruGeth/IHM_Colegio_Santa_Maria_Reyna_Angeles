@@ -32,7 +32,7 @@ export const Navbar: React.FC = () => {
 
       <header className="sitehead">
         <div className="container headinner">
-          <Link to="/" className="brand" aria-label="Santa María, ir al inicio">
+          <Link to="/" className="brand">
             <img
               src="/assets/logo.png"
               width="50"

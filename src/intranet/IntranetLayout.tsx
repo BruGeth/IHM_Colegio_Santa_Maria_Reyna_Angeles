@@ -9,6 +9,7 @@ import {
 import { Login } from './Login';
 import { Icon } from './Icons';
 import { Toast } from '../components/Toast';
+import { ReadingPreferences } from '../components/ReadingPreferences';
 
 // Views
 import { DashboardView } from './views/DashboardView';
@@ -188,6 +189,7 @@ export const IntranetLayout: React.FC = () => {
 
       {/* WORKSPACE */}
       <div className="workspace">
+        <ReadingPreferences />
         <header className="topbar">
           <div className="topbarLeft">
             <button
